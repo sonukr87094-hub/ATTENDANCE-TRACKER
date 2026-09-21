@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4338ca"/>
+      <stop offset="100%" stop-color="#312e81"/>
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981"/>
+      <stop offset="100%" stop-color="#059669"/>
+    </linearGradient>
+    <filter id="dropShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- Background Card -->
+  <rect width="512" height="512" rx="110" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle inner border -->
+  <rect x="12" y="12" width="488" height="488" rx="98" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="4"/>
+
+  <!-- Academic Cap & Checkmark Emblem -->
+  <g filter="url(#dropShadow)" transform="translate(60, 60) scale(0.76)">
+    <!-- Graduation Cap Top -->
+    <polygon points="256,48 480,160 256,272 32,160" fill="#ffffff"/>
+    
+    <!-- Cap Under-base -->
+    <path d="M112,204 L112,320 C112,380 256,430 256,430 C256,430 400,380 400,320 L400,204 L256,276 Z" fill="rgba(255,255,255,0.85)"/>
+    
+    <!-- Tassel -->
+    <path d="M440,180 L440,320 L460,340 L420,340 L440,320" fill="#fbbf24"/>
+    <circle cx="440" cy="180" r="10" fill="#fbbf24"/>
+
+    <!-- Attendance Percentage / Check Ring -->
+    <circle cx="256" cy="270" r="130" fill="url(#accentGrad)"/>
+    
+    <!-- Bold Checkmark in Ring -->
+    <path d="M196,268 L236,308 L320,224" fill="none" stroke="#ffffff" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

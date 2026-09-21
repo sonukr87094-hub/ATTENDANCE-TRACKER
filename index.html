@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Trackendance - College Attendance Tracker</title>
+  <meta name="description" content="Simple, offline-first college attendance tracker with baseline syncing, daily logging, graphs, prediction, and Excel import for Phone and Laptop.">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="style.css?v=3.1">
+  <script src="xlsx.full.min.js"></script>
+</head>
+<body>
+  <!-- App Container (Responsive for Laptop and Phone) -->
+  <div id="app" class="app-container">
+    
+    <!-- Top App Bar (Spans full width on laptop, comfortable on phone) -->
+    <header class="top-bar">
+      <div class="top-bar-inner">
+        
+        <!-- Left: Brand Logo & App Name -->
+        <div class="header-brand">
+          <div class="brand-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-title">Trackendance</span>
+            <span class="brand-subtitle" id="topSubtitle">College Attendance Tracker</span>
+          </div>
+        </div>
+
+        <!-- Center: Desktop Navigation Bar (Visible on Laptops/Desktops) -->
+        <nav class="desktop-nav" id="desktopNav">
+          <button class="d-nav-btn active" data-tab="dashboard">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Dashboard
+          </button>
+          <button class="d-nav-btn" data-tab="daily">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            Add Daily
+          </button>
+          <button class="d-nav-btn" data-tab="analytics">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Analytics
+          </button>
+          <button class="d-nav-btn" data-tab="prediction">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            Prediction
+          </button>
+          <button class="d-nav-btn" data-tab="history">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+            History
+          </button>
+          <button class="d-nav-btn" data-tab="sync">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+            Official Sync
+          </button>
+        </nav>
+
+        <!-- Right: Target Badge and Settings -->
+        <div class="header-actions">
+          <div class="target-badge" id="headerTargetBadge" title="Target Attendance Requirement">
+            <span class="badge-label">Target</span>
+            <span class="badge-val" id="headerTargetVal">75%</span>
+          </div>
+          <button class="btn-icon-header" id="btnHeaderSettings" title="Settings">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- Main Content Area with Smooth Hardware Accelerated Scroll -->
+    <main class="main-content" id="mainContentScroll">
+      <div class="content-wrapper">
+        
+        <!-- ============================================ -->
+        <!-- VIEW 1: DASHBOARD (Phases 1 & 4)             -->
+        <!-- ============================================ -->
+        <section id="view-dashboard" class="view active">
+          <!-- Overall Summary Banner -->
+          <div class="dashboard-hero-card" id="dashboardHeroCard">
+            <div class="hero-left">
+              <span class="hero-label">Overall Attendance</span>
+              <div class="hero-percentage-group">
+                <span class="hero-percentage" id="heroOverallPercentage">0.0%</span>
+                <span class="hero-status-tag" id="heroStatusTag">Loading...</span>
+              </div>
+              <p class="hero-summary-text" id="heroSummaryText">Calculated from total attended vs total conducted.</p>
+            </div>
+            <div class="hero-right">
+              <div class="circular-progress-wrapper">
+                <svg class="circular-chart" viewBox="0 0 36 36">
+                  <path class="circle-bg"
+                    d="M18 2.0845
+                      a 15.9155 15.9155 0 0 1 0 31.831
+                      a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                  <path class="circle-stroke" id="heroCircleStroke"
+                    stroke-dasharray="0, 100"
+                    d="M18 2.0845
+                      a 15.9155 15.9155 0 0 1 0 31.831
+                      a 15.9155 15.9155 0 0 1 0 -31.831"
+                  />
+                </svg>
+                <div class="circle-inner-icon">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                    <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metric Stat Cards Grid (4-columns on laptop, 2-columns on phone) -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon-wrap icon-green">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-num" id="statAttended">0</span>
+                <span class="stat-name">Classes Attended</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon-wrap icon-blue">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-num" id="statConducted">0</span>
+                <span class="stat-name">Total Conducted</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon-wrap icon-red">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-num" id="statMissed">0</span>
+                <span class="stat-name">Classes Missed</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon-wrap icon-purple">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+              </div>
+              <div class="stat-info">
+                <span class="stat-num" id="statSubjectsCount">0</span>
+                <span class="stat-name">Active Subjects</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Action Prompt Banner -->
+          <div class="action-banner">
+            <div class="action-banner-text">
+              <h4>Had classes today?</h4>
+              <p>Log your actual attended vs conducted classes in seconds.</p>
+            </div>
+            <button class="btn btn-primary btn-sm" id="btnQuickLog">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+              Log Today's Classes
+            </button>
+          </div>
+
+          <!-- Subject Cards Section -->
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Subject Breakdown</h2>
+              <p class="section-subtitle">Official baseline + all daily logs</p>
+            </div>
+            <div class="header-action-group">
+              <button class="btn btn-secondary btn-sm" id="btnDashboardSync">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                </svg>
+                Official Sync
+              </button>
+            </div>
+          </div>
+
+          <!-- Subject Breakdown Grid (Multi-column responsive) -->
+          <div id="subjectCardsList" class="subject-cards-grid">
+            <!-- Populated dynamically via app.js -->
+          </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- VIEW 2: DAILY ATTENDANCE INPUT (Phase 3)     -->
+        <!-- ============================================ -->
+        <section id="view-daily" class="view">
+          <div class="view-header">
+            <div>
+              <h2 class="page-title">Add Daily Attendance</h2>
+              <p class="page-subtitle">No rigid timetable. Enter what you attended today.</p>
+            </div>
+          </div>
+
+          <!-- Date Selector Card -->
+          <div class="card date-selector-card">
+            <div class="date-selector-row">
+              <div class="date-input-group">
+                <label for="dailyDateInput">Select Date</label>
+                <input type="date" id="dailyDateInput" class="form-input">
+              </div>
+              <div class="date-quick-actions">
+                <button class="btn btn-outline btn-xs" id="btnDateToday">Today</button>
+                <button class="btn btn-outline btn-xs" id="btnDateYesterday">Yesterday</button>
+              </div>
+            </div>
+            <div class="date-status-hint" id="dateStatusHint">
+              <!-- Indicates if records already exist for this date -->
+            </div>
+          </div>
+
+          <!-- Subject Entry Rows Container (Multi-column grid on laptop) -->
+          <div class="daily-entries-grid" id="dailyEntriesContainer">
+            <!-- Populated dynamically with subject entry blocks -->
+          </div>
+
+          <div class="form-bottom-actions">
+            <button class="btn btn-primary btn-block btn-lg" id="btnSaveDailyAttendance">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+              </svg>
+              Save Daily Attendance
+            </button>
+          </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- VIEW 3: ANALYTICS & GRAPHS (Phase 6)         -->
+        <!-- ============================================ -->
+        <section id="view-analytics" class="view">
+          <div class="view-header">
+            <div>
+              <h2 class="page-title">Attendance Analytics</h2>
+              <p class="page-subtitle">Visual trends, weekly breakdown, and subject comparisons.</p>
+            </div>
+          </div>
+
+          <!-- Laptop 2-Column Analytics Grid -->
+          <div class="analytics-top-grid">
+            <!-- Overall Attended vs Missed Ratio Card -->
+            <div class="card chart-card">
+              <div class="chart-card-header">
+                <div>
+                  <h3 class="card-heading">Overall Ratio: Attended vs Missed</h3>
+                  <p class="card-subheading">Total proportion of classes attended across curriculum.</p>
+                </div>
+              </div>
+              <div class="chart-donut-container" id="analyticsDonutChartContainer">
+                <!-- SVG Donut Chart rendered dynamically -->
+              </div>
+              <div class="chart-legend-row" id="analyticsDonutLegend">
+                <!-- Dynamic Legend -->
+              </div>
+            </div>
+
+            <!-- Weekly Activity Bar Chart -->
+            <div class="card chart-card">
+              <div class="chart-card-header">
+                <div>
+                  <h3 class="card-heading">Weekly Activity (Past 7 Days)</h3>
+                  <p class="card-subheading">Classes conducted vs attended per day.</p>
+                </div>
+              </div>
+              <div class="chart-svg-container" id="analyticsWeeklyChartContainer">
+                <!-- SVG Bar Chart rendered dynamically -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Subject-Wise Attendance Comparison -->
+          <div class="card chart-card">
+            <div class="chart-card-header">
+              <div>
+                <h3 class="card-heading">Subject-Wise Comparison</h3>
+                <p class="card-subheading">Percentage comparison against your target requirement.</p>
+              </div>
+            </div>
+            <div class="chart-bars-vertical" id="analyticsSubjectBarsContainer">
+              <!-- SVG Horizontal/Comparison Bars rendered dynamically -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- VIEW 4: ATTENDANCE PREDICTION (Phase 7)      -->
+        <!-- ============================================ -->
+        <section id="view-prediction" class="view">
+          <div class="view-header">
+            <div>
+              <h2 class="page-title">Attendance Prediction</h2>
+              <p class="page-subtitle">Exact math on classes needed or safe to skip.</p>
+            </div>
+          </div>
+
+          <!-- Overall Prediction Card -->
+          <div class="card prediction-hero-card" id="overallPredictionCard">
+            <!-- Dynamically populated overall forecast -->
+          </div>
+
+          <!-- Subject Wise Predictions List (Multi-column responsive grid) -->
+          <div class="section-header" style="margin-top: 18px;">
+            <div>
+              <h3 class="section-title">Subject Target Forecasts</h3>
+              <p class="section-subtitle">Based on your official <span id="predTargetLabel">75%</span> requirement</p>
+            </div>
+          </div>
+
+          <div id="predictionSubjectsList" class="prediction-grid">
+            <!-- Dynamically populated subject prediction cards -->
+          </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- VIEW 5: ATTENDANCE HISTORY (Phase 5)         -->
+        <!-- ============================================ -->
+        <section id="view-history" class="view">
+          <div class="view-header">
+            <div>
+              <h2 class="page-title">Attendance History</h2>
+              <p class="page-subtitle">Inspect, edit, or delete past daily entries.</p>
+            </div>
+          </div>
+
+          <!-- Filters & View Mode -->
+          <div class="card history-filter-card">
+            <div class="filter-row">
+              <div class="filter-group">
+                <label for="historySubjectFilter">Subject</label>
+                <select id="historySubjectFilter" class="form-select">
+                  <option value="all">All Subjects</option>
+                </select>
+              </div>
+              <div class="filter-group">
+                <label>Grouping</label>
+                <div class="segment-tabs">
+                  <button class="seg-btn active" data-history-mode="daily">Daily</button>
+                  <button class="seg-btn" data-history-mode="weekly">Weekly</button>
+                  <button class="seg-btn" data-history-mode="monthly">Monthly</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- History Items Container -->
+          <div id="historyEntriesList" class="history-list">
+            <!-- Populated dynamically -->
+          </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- VIEW 6: OFFICIAL SYNC & BASELINE (Phases 2,8,9) -->
+        <!-- ============================================ -->
+        <section id="view-sync" class="view">
+          <div class="view-header">
+            <div>
+              <h2 class="page-title">Official Sync & Data</h2>
+              <p class="page-subtitle">Weekly college synchronization, baseline setup & Excel import.</p>
+            </div>
+          </div>
+
+          <!-- Sub navigation tabs inside Sync view -->
+          <div class="sub-nav-tabs">
+            <button class="sub-nav-btn active" data-subview="sync-weekly">Weekly Sync</button>
+            <button class="sub-nav-btn" data-subview="sync-baseline">Baseline & Subjects</button>
+            <button class="sub-nav-btn" data-subview="sync-excel">Import Excel/CSV</button>
+            <button class="sub-nav-btn" data-subview="sync-history">Sync History</button>
+          </div>
+
+          <!-- SUBVIEW A: WEEKLY OFFICIAL SYNC (Phase 8) -->
+          <div id="subview-sync-weekly" class="sync-subview active">
+            <div class="info-alert">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+              </svg>
+              <div class="info-alert-text">
+                <strong>Official College Sync:</strong> Enter the latest numbers published by your college.
+                These numbers become the new trusted baseline. Daily records prior to this date are archived so attendance is <em>never double-counted</em>!
+              </div>
+            </div>
+
+            <div class="card baseline-meta-card">
+              <div class="meta-row">
+                <label for="syncEffectiveDateInput">Official Sync Cutoff Date</label>
+                <input type="date" id="syncEffectiveDateInput" class="form-input form-input-sm">
+              </div>
+            </div>
+
+            <div id="weeklySyncList" class="baseline-grid">
+              <!-- Dynamic Subject Sync Inputs -->
+            </div>
+
+            <div class="form-bottom-actions">
+              <button class="btn btn-primary btn-block btn-lg" id="btnConfirmOfficialSync">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                </svg>
+                Sync Official Attendance
+              </button>
+            </div>
+          </div>
+
+          <!-- SUBVIEW B: BASELINE & SUBJECT MANAGEMENT (Phase 2) -->
+          <div id="subview-sync-baseline" class="sync-subview">
+            <div class="baseline-header-row">
+              <div>
+                <h3 class="card-heading">Manage Subjects</h3>
+                <p class="card-subheading">Configure initial baseline numbers or edit subject acronyms.</p>
+              </div>
+              <button class="btn btn-primary btn-sm" id="btnOpenAddSubjectModal">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Add Subject
+              </button>
+            </div>
+
+            <div id="baselineSubjectsList" class="baseline-grid">
+              <!-- Populated dynamically via app.js -->
+            </div>
+
+            <div class="form-bottom-actions">
+              <button class="btn btn-primary btn-block btn-lg" id="btnSaveBaseline">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                  <polyline points="17 21 17 13 7 13 7 21"/>
+                  <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                Save Baseline Changes
+              </button>
+            </div>
+          </div>
+
+          <!-- SUBVIEW C: EXCEL & CSV IMPORT (Phase 9) -->
+          <div id="subview-sync-excel" class="sync-subview">
+            <div class="card excel-import-card">
+              <h3 class="card-heading">Import Official Spreadsheet</h3>
+              <p class="card-subheading">
+                Upload an Excel (.xlsx, .xls) or CSV attendance sheet from your college portal, or paste copied table text.
+              </p>
+
+              <div class="file-drop-zone" id="fileDropZone">
+                <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" class="file-input-hidden">
+                <div class="drop-zone-content">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="12" y1="18" x2="12" y2="12"/>
+                    <line x1="9" y1="15" x2="15" y2="15"/>
+                  </svg>
+                  <span class="drop-label">Choose an Excel (.xlsx, .xls) or CSV file</span>
+                  <span class="drop-sublabel">or drag and drop file here</span>
+                </div>
+              </div>
+
+              <div class="or-divider"><span>OR PASTE TABLE TEXT</span></div>
+
+              <div class="form-group">
+                <label for="excelPasteInput">Paste Tabular / CSV Text (Copy from college portal)</label>
+                <textarea id="excelPasteInput" class="form-textarea" rows="4" placeholder="e.g.&#10;DSD, 25, 27&#10;Network Systems, 21, 23&#10;VLSI, 16, 20"></textarea>
+              </div>
+
+              <button class="btn btn-secondary btn-block" id="btnParseSpreadsheet">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Detect & Preview Data
+              </button>
+            </div>
+
+            <!-- Excel Mapping Preview Section (Appears after parsing) -->
+            <div id="excelPreviewSection" class="card hidden">
+              <h3 class="card-heading">Detected Attendance Mapping</h3>
+              <p class="card-subheading">Verify detected columns and values before applying to baseline.</p>
+              
+              <div class="table-responsive">
+                <table class="preview-table">
+                  <thead>
+                    <tr>
+                      <th>Include</th>
+                      <th>Detected Subject</th>
+                      <th>Attended</th>
+                      <th>Conducted</th>
+                      <th>Matched App Subject</th>
+                    </tr>
+                  </thead>
+                  <tbody id="excelPreviewTableBody">
+                    <!-- Generated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="form-bottom-actions" style="margin-top: 14px;">
+                <button class="btn btn-primary btn-block btn-lg" id="btnApplyExcelImport">
+                  Apply to Official Baseline
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUBVIEW D: SYNC HISTORY (Phase 8) -->
+          <div id="subview-sync-history" class="sync-subview">
+            <div id="syncHistoryList" class="history-list">
+              <!-- Dynamic Sync History List -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================ -->
+        <!-- VIEW 7: SETTINGS, PWA & NOTIFICATIONS (Phases 1, 10, 11) -->
+        <!-- ============================================ -->
+        <section id="view-settings" class="view">
+          <div class="view-header">
+            <div>
+              <h2 class="page-title">Settings</h2>
+              <p class="page-subtitle">Configure tracker targets, notifications, PWA, and local data.</p>
+            </div>
+          </div>
+
+          <!-- PWA Install Banner -->
+          <div class="card pwa-card" id="pwaInstallCard">
+            <div class="pwa-left">
+              <div class="pwa-icon">📲</div>
+              <div>
+                <h4 class="pwa-title">Install App for Offline Use</h4>
+                <p class="pwa-desc">Install Trackendance on your phone or desktop for quick 1-tap access without internet.</p>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-sm" id="btnInstallPwa">Install App</button>
+          </div>
+
+          <!-- Phase 11: Optional Attendance Reminders -->
+          <div class="card settings-card">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div>
+                <h3 class="card-heading">Daily Attendance Reminders</h3>
+                <p class="card-subheading">Optional reminder to log your attendance if not logged yet.</p>
+              </div>
+              <label class="switch-toggle" title="Enable/Disable Reminders">
+                <input type="checkbox" id="settingNotificationToggle">
+                <span class="slider-toggle"></span>
+              </label>
+            </div>
+            
+            <div id="notificationSettingsDetails" class="notification-details hidden">
+              <div class="form-group" style="margin-top: 10px;">
+                <label for="settingNotificationTime">Reminder Time</label>
+                <input type="time" id="settingNotificationTime" class="form-input form-input-sm" value="17:00">
+              </div>
+              <div style="display: flex; gap: 10px; margin-top: 8px;">
+                <button class="btn btn-outline btn-sm" id="btnTestNotification">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                  </svg>
+                  Send Test Notification
+                </button>
+              </div>
+              <p id="notificationStatusMsg" style="font-size: 0.74rem; color: #64748b; margin-top: 8px;">
+                Notifications work completely locally and offline.
+              </p>
+            </div>
+          </div>
+
+          <div class="card settings-card">
+            <h3 class="card-heading">Attendance Target</h3>
+            <p class="card-subheading">Minimum attendance percentage required by your college.</p>
+            
+            <div class="target-setting-row">
+              <div class="target-slider-group">
+                <input type="range" id="settingTargetRange" min="50" max="95" step="1" value="75" class="form-range">
+                <div class="range-marks">
+                  <span>50%</span>
+                  <span>65%</span>
+                  <span class="mark-bold">75%</span>
+                  <span>85%</span>
+                  <span>95%</span>
+                </div>
+              </div>
+              <div class="target-display">
+                <span id="settingTargetDisplay">75%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card settings-card">
+            <h3 class="card-heading">College / Student Info</h3>
+            <div class="form-group">
+              <label for="settingCollegeName">College or Semester Name (Optional)</label>
+              <input type="text" id="settingCollegeName" class="form-input" placeholder="e.g. ABC College of Engineering - Sem 5">
+            </div>
+          </div>
+
+          <div class="card settings-card">
+            <h3 class="card-heading">Data Management</h3>
+            <p class="card-subheading">Your data is stored securely in this browser's LocalStorage.</p>
+            <div class="settings-actions">
+              <button class="btn btn-outline" id="btnLoadDemoData">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                Load Sample College Data
+              </button>
+              <button class="btn btn-danger-outline" id="btnClearAllData">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                </svg>
+                Clear All Data
+              </button>
+            </div>
+          </div>
+
+          <div class="card settings-card about-card">
+            <h3 class="card-heading">About Trackendance</h3>
+            <p class="about-desc">
+              100% Offline-First College Attendance Tracker with Baseline Syncing, Daily Logging, SVG Analytics, Predictive What-If Modeling, Spreadsheet Importer, and Optional Reminders.
+            </p>
+            <div class="version-tag">Version 3.1.0 (Phone & Laptop Optimized)</div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- Bottom Navigation Bar (Mobile Phone Only - Hidden on Laptops) -->
+    <nav class="bottom-nav mobile-nav-bar" id="mobileBottomNav">
+      <button class="nav-item active" data-tab="dashboard">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+          </svg>
+        </div>
+        <span class="nav-label">Dashboard</span>
+      </button>
+
+      <button class="nav-item" data-tab="daily">
+        <div class="nav-icon add-badge-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="16"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+        </div>
+        <span class="nav-label">Daily</span>
+      </button>
+
+      <button class="nav-item" data-tab="analytics">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </div>
+        <span class="nav-label">Analytics</span>
+      </button>
+
+      <button class="nav-item" data-tab="prediction">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+            <polyline points="17 6 23 6 23 12"/>
+          </svg>
+        </div>
+        <span class="nav-label">Prediction</span>
+      </button>
+
+      <button class="nav-item" data-tab="history">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 14 14"/>
+          </svg>
+        </div>
+        <span class="nav-label">History</span>
+      </button>
+
+      <button class="nav-item" data-tab="sync">
+        <div class="nav-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+          </svg>
+        </div>
+        <span class="nav-label">Sync</span>
+      </button>
+    </nav>
+
+    <!-- Modal: Add / Edit Subject -->
+    <div id="subjectModal" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="subjectModalTitle">Add New Subject</h3>
+          <button class="modal-close-btn" id="btnCloseSubjectModal">&times;</button>
+        </div>
+        <form id="subjectModalForm" class="modal-body">
+          <input type="hidden" id="modalSubjectId">
+          <div class="form-group">
+            <label for="modalSubjectName">Subject Name *</label>
+            <input type="text" id="modalSubjectName" class="form-input" placeholder="e.g. Digital System Design" required>
+          </div>
+          <div class="form-group">
+            <label for="modalSubjectCode">Short Code / Acronym *</label>
+            <input type="text" id="modalSubjectCode" class="form-input" placeholder="e.g. DSD" required>
+          </div>
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label for="modalSubjectBaselineAttended">Baseline Attended</label>
+              <input type="number" id="modalSubjectBaselineAttended" class="form-input" min="0" value="0">
+            </div>
+            <div class="form-group">
+              <label for="modalSubjectBaselineConducted">Baseline Conducted</label>
+              <input type="number" id="modalSubjectBaselineConducted" class="form-input" min="0" value="0">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" id="btnCancelSubjectModal">Cancel</button>
+            <button type="submit" class="btn btn-primary" id="btnSubmitSubjectModal">Save Subject</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Edit Single History Record -->
+    <div id="historyEditModal" class="modal-backdrop hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Edit Attendance Record</h3>
+          <button class="modal-close-btn" id="btnCloseHistoryEditModal">&times;</button>
+        </div>
+        <form id="historyEditForm" class="modal-body">
+          <input type="hidden" id="editRecordId">
+          <div class="form-group">
+            <label>Subject</label>
+            <input type="text" id="editRecordSubjectName" class="form-input" readonly disabled>
+          </div>
+          <div class="form-group">
+            <label for="editRecordDate">Date</label>
+            <input type="date" id="editRecordDate" class="form-input" required>
+          </div>
+          <div class="modal-grid-2">
+            <div class="form-group">
+              <label for="editRecordAttended">Attended</label>
+              <input type="number" id="editRecordAttended" class="form-input" min="0" required>
+            </div>
+            <div class="form-group">
+              <label for="editRecordConducted">Conducted</label>
+              <input type="number" id="editRecordConducted" class="form-input" min="0" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="editRecordNote">Note (Optional)</label>
+            <input type="text" id="editRecordNote" class="form-input" placeholder="e.g. Extra class">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" id="btnCancelHistoryEditModal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Update Record</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Notification Popup -->
+    <div id="toastNotification" class="toast hidden"></div>
+
+  </div>
+
+  <script src="app.js?v=3.1"></script>
+</body>
+</html>
